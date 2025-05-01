@@ -1,0 +1,12 @@
+# Java
+*.class
+*.jar
+*.war
+target/
+.idea/
+
+# Angular
+node_modules/
+dist/
+*.tmp
+*.log

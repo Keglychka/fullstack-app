@@ -1,0 +1,12 @@
+<nav class="bg-gray-800 p-4">
+  <div class="container mx-auto flex justify-between items-center">
+    <a routerLink="/" class="text-white text-lg font-bold">Курсач</a>
+    <div class="space-x-4">
+      <a routerLink="/posts" class="text-white hover:text-gray-300">Рецепты</a>
+      <a *ngIf="authService.isLoggedIn()" routerLink="/posts/create" class="text-white hover:text-gray-300">Написать рецепт</a>
+      <a *ngIf="!authService.isLoggedIn()" routerLink="/login" class="text-white hover:text-gray-300">Войти</a>
+      <a *ngIf="!authService.isLoggedIn()" routerLink="/register" class="text-white hover:text-gray-300">Регистрация</a>
+      <button *ngIf="authService.isLoggedIn()" (click)="logout()" class="text-white hover:text-gray-300">Выйти</button>
+    </div>
+  </div>
+</nav>
