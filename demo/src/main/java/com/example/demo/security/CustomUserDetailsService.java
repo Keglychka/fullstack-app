@@ -27,7 +27,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
-                Collections.emptyList() // Пустой список ролей, можно добавить роли при необходимости
+                Collections.emptyList()
         );
     }
 }

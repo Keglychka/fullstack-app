@@ -8,8 +8,8 @@
       <p><strong>Автор:</strong> {{ post.author.username }}</p>
       <p><strong>Категория:</strong> {{ post.category.name }}</p>
       <p><strong>Краткое описание:</strong> {{ post.anons }}</p>
-      <p><strong>Шаги приготовления:</strong> {{ post.description }}</p>
-      <p><strong>Ингредиенты:</strong> {{ post.ingredients }}</p>
+      <p style="white-space: pre-wrap"><strong>Шаги приготовления:</strong> {{ post.description }}</p>
+      <p style="white-space: pre-wrap"><strong>Ингредиенты:</strong> {{ post.ingredients }}</p>
       <p><strong>Создано:</strong> {{ post.dateCreate | date }}</p>
       <p><strong>Обновлено:</strong> {{ post.dateUpdate | date }}</p>
       <div class="mt-4 flex space-x-6">

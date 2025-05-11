@@ -4,6 +4,7 @@ import { Observable, throwError } from 'rxjs';
 import { catchError, tap, map } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { User } from '../models/user.model';
+import { environment } from '../environments/environment';
 
 interface AuthResponse {
   token: string;
@@ -14,16 +15,13 @@ interface AuthResponse {
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8080/api/auth';
+  private apiUrl = environment.apiUrl;
   private tokenKey = 'token';
 
   constructor(private http: HttpClient, private router: Router) { }
 
   register(user: User): Observable<string> {
-    return this.http.post<{token: string}>(
-      `${this.apiUrl}/register`,
-      user
-    ).pipe(
+    return this.http.post<{token: string}>( `${this.apiUrl}/api/auth/register`, user ).pipe(
       map(response => response.token),
       tap(token => {
         localStorage.setItem(this.tokenKey, token);
@@ -34,12 +32,11 @@ export class AuthService {
   }
 
   login(credentials: { username: string; password: string }): Observable<string> {
-    return this.http.post<{token: string}>(
-      `${this.apiUrl}/login`,
-      credentials
+    return this.http.post( `${this.apiUrl}/api/auth/login`, credentials,
+      { responseType: 'text' }
     ).pipe(
-      map(response => response.token),
       tap(token => {
+        if (!token) throw new Error('Пустой ответ от сервера');
         localStorage.setItem(this.tokenKey, token);
         this.router.navigate(['/posts']);
       }),

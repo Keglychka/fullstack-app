@@ -14,7 +14,9 @@ public class Post {
     private String title;
 
     private String anons;
+    @Column(length = 2000)
     private String description;
+    @Column(length = 2000)
     private String ingredients;
     private String photo;
 

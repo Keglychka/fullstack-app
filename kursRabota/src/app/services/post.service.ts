@@ -3,36 +3,30 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Post } from '../models/post.model';
 import { AuthService } from './auth.service';
+import { environment } from '../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PostService {
-  private apiUrl = 'http://localhost:8080/api/posts';
+  private apiUrl = environment.apiUrl;
 
   constructor(private http: HttpClient, private authService: AuthService) { }
 
-  private getHeaders(): HttpHeaders {
-    const token = this.authService.getToken();
-    return new HttpHeaders({
-      'Authorization': `Bearer ${token}`
-    });
-  }
-
   getAllPosts(): Observable<Post[]> {
-    return this.http.get<Post[]>(this.apiUrl);
+    return this.http.get<Post[]>(this.apiUrl + '/api/posts');
   }
 
   getPostById(id: number): Observable<Post> {
-    return this.http.get<Post>(`${this.apiUrl}/${id}`);
+    return this.http.get<Post>(`${this.apiUrl}/api/posts/${id}`);
   }
 
   getPostsByCategory(catId: number): Observable<Post[]> {
-    return this.http.get<Post[]>(`${this.apiUrl}/category/${catId}`);
+    return this.http.get<Post[]>(`${this.apiUrl}/api/posts/category/${catId}`);
   }
 
   searchPosts(query: string): Observable<Post[]> {
-    return this.http.get<Post[]>(`${this.apiUrl}/search?q=${query}`);
+    return this.http.get<Post[]>(`${this.apiUrl}/api/posts/search?q=${query}`);
   }
 
   createPost(post: Post, photo: File | null): Observable<Post> {
@@ -41,7 +35,7 @@ export class PostService {
     if (photo) {
       formData.append('photo', photo);
     }
-    return this.http.post<Post>(this.apiUrl, formData, { headers: this.getHeaders() });
+    return this.http.post<Post>(`${this.apiUrl}/api/posts`, formData);
   }
 
   updatePost(id: number, post: Post, photo: File | null): Observable<Post> {
@@ -50,10 +44,10 @@ export class PostService {
     if (photo) {
       formData.append('photo', photo);
     }
-    return this.http.put<Post>(`${this.apiUrl}/${id}`, formData, { headers: this.getHeaders() });
+    return this.http.put<Post>(`${this.apiUrl}/api/posts/${id}`, formData);
   }
 
   deletePost(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`, { headers: this.getHeaders() });
+    return this.http.delete<void>(`${this.apiUrl}/api/posts/${id}`);
   }
 }
