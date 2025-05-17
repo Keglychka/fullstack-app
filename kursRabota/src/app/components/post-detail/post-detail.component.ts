@@ -33,6 +33,12 @@ export class PostDetailComponent implements OnInit {
       });
     }
 
+  getSteps(): string[] {
+    return this.post?.description
+      ? this.post.description.split('\n').filter(step => step.startsWith('Шаг'))
+      : [];
+  }
+
   isAuthor(): boolean {
     if (!this.post || !this.authService.isLoggedIn()) {
       return false;

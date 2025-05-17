@@ -1,52 +1,100 @@
-<div class="container mx-auto p-4">
-  <h2 class="text-2xl font-bold mb-4">{{ isEdit ? 'Редактировать пост' : 'Создать пост' }}</h2>
-  <div *ngIf="error" class="text-red-500 mb-4">{{ error }}</div>
-  <form [formGroup]="postForm" (ngSubmit)="submit()" class="space-y-4">
+<div class="container mx-auto p-4 animate-fade-in">
+  <h2 class="text-2xl font-bold mb-4 text-gray-800 relative">
+    {{ isEdit ? 'Редактировать пост' : 'Создать пост' }}
+    <span class="block w-12 h-1 bg-gradient-to-r from-blue-500 to-teal-500 mt-2"></span>
+  </h2>
+  <div *ngIf="error" class="text-red-500 mb-4 bg-red-100 p-2 rounded flex items-center">
+    <i class="fas fa-exclamation-circle mr-2"></i>{{ error }}
+  </div>
+  <form [formGroup]="postForm" (ngSubmit)="submit()" class="space-y-6 bg-white p-6 rounded-lg shadow-md">
     <div>
-      <label for="title" class="block text-sm font-medium text-gray-700">Название</label>
-      <input id="title" formControlName="title" type="text" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
-      <div *ngIf="f['title'].touched && f['title'].errors" class="text-red-500 text-sm mt-1">
-        <div *ngIf="f['title'].errors['required']">Название обязательно</div>
+      <label for="title" class="flex items-center text-sm font-medium text-gray-700">
+        <i class="fas fa-book mr-2 text-gray-400 text-lg"></i> Название
+      </label>
+      <input id="title" formControlName="title" type="text" placeholder="Введите название рецепта" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 h-10">
+      <div *ngIf="f['title'].touched && f['title'].errors?.['required']" class="text-red-500 text-sm mt-1 flex items-center">
+        <i class="fas fa-exclamation-circle mr-1"></i> Название обязательно
       </div>
     </div>
 
     <div>
-      <label for="anons" class="block text-sm font-medium text-gray-700">Краткое описание</label>
-      <textarea id="anons" formControlName="anons" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"></textarea>
-      <div *ngIf="f['anons'].touched && f['anons'].errors" class="text-red-500 text-sm mt-1">
-        <div *ngIf="f['anons'].errors['required']">Краткое описание обязательно</div>
+      <label for="photo" class="flex items-center text-sm font-medium text-gray-700">
+        <i class="fas fa-camera mr-2 text-gray-400 text-lg"></i> Фотография
+      </label>
+      <input id="photo" type="file" (change)="onFileChange($event)" accept="image/*" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200">
+      <div class="mt-2">
+        <img *ngIf="previewUrl || (isEdit && postPhoto)" [src]="previewUrl || postPhoto" alt="Preview" class="w-full max-w-xs rounded-lg shadow-sm object-cover h-48">
       </div>
     </div>
 
     <div>
-      <label for="description" class="block text-sm font-medium text-gray-700">Описание</label>
-      <textarea id="description" formControlName="description" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"></textarea>
-      <div *ngIf="f['description'].touched && f['description'].errors" class="text-red-500 text-sm mt-1">
-        <div *ngIf="f['description'].errors['required']">Описание обязательно</div>
+      <label for="anons" class="flex items-center text-sm font-medium text-gray-700">
+        <i class="fas fa-align-left mr-2 text-gray-400 text-lg"></i> Краткое описание
+      </label>
+      <textarea id="anons" formControlName="anons" placeholder="Опишите рецепт кратко" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 min-h-[100px]"></textarea>
+      <div *ngIf="f['anons'].touched && f['anons'].errors?.['required']" class="text-red-500 text-sm mt-1 flex items-center">
+        <i class="fas fa-exclamation-circle mr-1"></i> Краткое описание обязательно
       </div>
     </div>
 
     <div>
-      <label for="ingredients" class="block text-sm font-medium text-gray-700">Ингредиенты</label>
-      <textarea id="ingredients" formControlName="ingredients" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"></textarea>
-      <div *ngIf="f['ingredients'].touched && f['ingredients'].errors" class="text-red-500 text-sm mt-1">
-        <div *ngIf="f['ingredients'].errors['required']">Ингредиенты обязательны</div>
+      <label for="stepCount" class="flex items-center text-sm font-medium text-gray-700">
+        <i class="fas fa-list-ol mr-2 text-gray-400 text-lg"></i> Количество шагов
+      </label>
+      <select id="stepCount" formControlName="stepCount" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 h-10">
+        <option *ngFor="let count of stepCountOptions" [value]="count">{{ count }}</option>
+      </select>
+      <div *ngIf="f['stepCount'].touched && f['stepCount'].errors?.['required']" class="text-red-500 text-sm mt-1 flex items-center">
+        <i class="fas fa-exclamation-circle mr-1"></i> Количество шагов обязательно
+      </div>
+      <div *ngIf="f['stepCount'].touched && (f['stepCount'].errors?.['min'] || f['stepCount'].errors?.['max'])" class="text-red-500 text-sm mt-1 flex items-center">
+        <i class="fas fa-exclamation-circle mr-1"></i> Шаги должны быть от 1 до 20
+      </div>
+    </div>
+
+    <div formArrayName="steps" class="space-y-4 border-t border-gray-200 pt-4">
+      <label class="flex items-center text-sm font-medium text-gray-700">
+        <i class="fas fa-clipboard-list mr-2 text-gray-400 text-lg"></i> Шаги приготовления
+      </label>
+      <div *ngFor="let step of steps.controls; let i = index" class="mb-2">
+        <label for="step{{i}}" class="flex items-center text-sm font-medium text-gray-700">
+          <i class="fas fa-clipboard-list mr-2 text-gray-400 text-lg"></i> Шаг {{ i + 1 }}
+        </label>
+        <textarea [formControlName]="i" id="step{{i}}" placeholder="Опишите шаг {{ i + 1 }}" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 min-h-[100px]" required></textarea>
+        <div *ngIf="steps.controls[i].touched && steps.controls[i].errors?.['required']" class="text-red-500 text-sm mt-1 flex items-center">
+          <i class="fas fa-exclamation-circle mr-1"></i> Шаг {{ i + 1 }} обязателен
+        </div>
+        <div *ngIf="steps.controls[i].touched && steps.controls[i].errors?.['minLength']" class="text-red-500 text-sm mt-1 flex items-center">
+          <i class="fas fa-exclamation-circle mr-1"></i> Шаг {{ i + 1 }} не может быть пустым
+        </div>
       </div>
     </div>
 
     <div>
-      <label for="category" class="block text-sm font-medium text-gray-700">Категория</label>
-      <select id="category" formControlName="category" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2">
+      <label for="ingredients" class="flex items-center text-sm font-medium text-gray-700">
+        <i class="fas fa-carrot mr-2 text-gray-400 text-lg"></i> Ингредиенты
+      </label>
+      <textarea id="ingredients" formControlName="ingredients" placeholder="Перечислите ингредиенты" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 min-h-[100px]"></textarea>
+      <div *ngIf="f['ingredients'].touched && f['ingredients'].errors?.['required']" class="text-red-500 text-sm mt-1 flex items-center">
+        <i class="fas fa-exclamation-circle mr-1"></i> Ингредиенты обязательны
+      </div>
+    </div>
+
+    <div>
+      <label for="category" class="flex items-center text-sm font-medium text-gray-700">
+        <i class="fas fa-tags mr-2 text-gray-400 text-lg"></i> Категория
+      </label>
+      <select id="category" formControlName="category" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 h-10">
         <option value="">Выберите категорию</option>
         <option *ngFor="let category of categories" [value]="category.catId">{{ category.name }}</option>
       </select>
-      <div *ngIf="f['category'].touched && f['category'].errors" class="text-red-500 text-sm mt-1">
-        <div *ngIf="f['category'].errors['required']">Категория обязательна</div>
+      <div *ngIf="f['category'].touched && f['category'].errors?.['required']" class="text-red-500 text-sm mt-1 flex items-center">
+        <i class="fas fa-exclamation-circle mr-1"></i> Категория обязательна
       </div>
     </div>
 
-    <button type="submit" [disabled]="postForm.invalid" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 disabled:bg-gray-400">
-      {{ isEdit ? 'Сохранить' : 'Создать' }}
+    <button type="submit" [disabled]="postForm.invalid" class="w-full text-white px-4 py-2 rounded-md transition duration-200 flex items-center justify-center" [ngClass]="{'bg-gray-400 cursor-not-allowed': postForm.invalid, 'bg-gradient-to-r from-blue-500 to-teal-500 hover:scale-105': postForm.valid}">
+      <i class="fas fa-plus mr-2"></i> {{ isEdit ? 'Сохранить' : 'Создать' }}
     </button>
   </form>
 </div>

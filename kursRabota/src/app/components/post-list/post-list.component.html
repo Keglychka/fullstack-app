@@ -1,22 +1,22 @@
 <div class="container mx-auto p-4">
-  <h2 class="text-2xl font-bold mb-4">Рецепты</h2>
-  <div class="flex mb-4">
-    <input type="text" [(ngModel)]="searchQuery" (input)="searchPosts()" placeholder="Поиск по заголовку..." class="p-2 border rounded flex-grow">
-    <select [(ngModel)]="selectedCategoryId" (ngModelChange)="filterByCategory($event)" class="ml-2 p-2 border rounded">
+  <h2 class="text-2xl font-bold mb-4 text-gray-800">Рецепты</h2>
+  <div class="flex mb-4 space-x-2">
+    <input type="text" [(ngModel)]="searchQuery" (input)="searchPosts()" placeholder="Поиск по заголовку..." class="p-2 border border-gray-300 rounded-md shadow-sm flex-grow focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+    <select [(ngModel)]="selectedCategoryId" (ngModelChange)="filterByCategory($event)" class="p-2 border border-gray-300 rounded-md shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       <option value="">Все категории</option>
       <option *ngFor="let category of categories" [value]="category.catId">{{ category.name }}</option>
     </select>
   </div>
   <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-    <div *ngFor="let post of posts" class="border rounded p-4">
-      <img *ngIf="post.photo" [src]="post.photo" alt="{{ post.title }}" class="w-full h-48 object-cover mb-2">
-      <h3 class="text-lg font-bold">{{ post.title }}</h3>
-      <p>{{ post.anons }}</p>
-      <p class="text-sm text-gray-500">Создано пользователем: {{ post.author.username }}</p>
-      <div class="mt-2">
-        <a [routerLink]="['/posts', post.idPost]" class="text-blue-500 hover:underline">Прочитать</a>
-        <a *ngIf="authService.isLoggedIn() && post.author.username === authService.getToken()" [routerLink]="['/posts/edit', post.idPost]" class="ml-2 text-blue-500 hover:underline">Редактировать</a>
-        <button *ngIf="authService.isLoggedIn() && post.author.username === authService.getToken()" (click)="deletePost(post.idPost!)" class="ml-2 text-red-500 hover:underline">Удалить</button>
+    <div *ngFor="let post of posts" class="border rounded-lg p-4 bg-white shadow-md hover:shadow-lg transition duration-200">
+      <img *ngIf="post.photo" [src]="post.photo" alt="{{ post.title }}" class="w-full h-48 object-cover mb-2 rounded-md">
+      <h3 class="text-lg font-bold text-gray-800">{{ post.title }}</h3>
+      <p class="text-gray-600">{{ post.anons }}</p>
+      <p class="text-sm text-gray-500 mt-2">Создано пользователем: {{ post.author.username }}</p>
+      <div class="mt-2 flex space-x-4">
+        <a [routerLink]="['/posts', post.idPost]" class="text-blue-500 hover:underline hover:text-blue-600 transition duration-200">Прочитать</a>
+        <a *ngIf="authService.isLoggedIn() && post.author.username === authService.getToken()" [routerLink]="['/posts/edit', post.idPost]" class="text-green-500 hover:underline hover:text-green-600 transition duration-200">Редактировать</a>
+        <button *ngIf="authService.isLoggedIn() && post.author.username === authService.getToken()" (click)="deletePost(post.idPost!)" class="text-red-500 hover:underline hover:text-red-600 transition duration-200">Удалить</button>
       </div>
     </div>
   </div>

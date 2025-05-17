@@ -5,7 +5,7 @@ import { CategoryService } from '../../services/category.service';
 import { Post } from '../../models/post.model';
 import { Category } from '../../models/category.model';
 import { AuthService } from '../../services/auth.service';
-import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, AbstractControl, FormArray } from '@angular/forms';
 
 
 @Component({
@@ -19,6 +19,10 @@ export class PostFormComponent implements OnInit {
   categories: Category[] = [];
   isEdit = false;
   error: string | null = null;
+  stepCountOptions: number[] = Array.from({ length: 20 }, (_, i) => i + 1);
+  previewUrl: string | null = null;
+  postPhoto: string | null = null;
+   private baseUrl = 'http://localhost:8080';
 
   constructor(
     private fb: FormBuilder,
@@ -30,10 +34,12 @@ export class PostFormComponent implements OnInit {
   ) {
     this.postForm = this.fb.group({
       title: ['', [Validators.required]],
+      photo: [null],
       anons: ['', [Validators.required]],
-      description: ['', [Validators.required]],
       ingredients: ['', [Validators.required]],
-      category: ['', Validators.required]
+      category: ['', Validators.required],
+      stepCount: [1, [Validators.required, Validators.min(1), Validators.max(20)]],
+      steps: this.fb.array([])
     });
   }
 
@@ -49,6 +55,12 @@ export class PostFormComponent implements OnInit {
     }
     console.log('Token found:', token);
 
+    // Инициализация шагов
+    this.postForm.get('stepCount')?.valueChanges.subscribe(count => {
+      this.updateSteps(count);
+    });
+    this.updateSteps(1);
+
     // Проверка режима редактирования
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -56,13 +68,25 @@ export class PostFormComponent implements OnInit {
       this.postService.getPostById(Number(id)).subscribe({
         next: (post) => {
           console.log('Post loaded for editing:', post);
+          // Разбиваем description на шаги
+          const steps = post.description
+            ? post.description.split('\n').filter(step => step.startsWith('Шаг')).map(step => step.replace(/^Шаг \d+: /, ''))
+            : [''];
           this.postForm.patchValue({
             title: post.title,
             anons: post.anons,
-            description: post.description,
             ingredients: post.ingredients,
-            category: post.category.catId
+            category: post.category.catId,
+            stepCount: steps.length || 1
           });
+          this.updateSteps(steps.length || 1);
+          steps.forEach((step, index) => {
+            this.steps.at(index).setValue(step);
+          });
+          if (post.photo) {
+            this.postPhoto = `${this.baseUrl}${post.photo}`; // Учитываем ведущий слэш в /Uploads/
+            console.log('Post photo URL:', this.postPhoto);
+          }
           if (!post.category?.catId) {
             this.error = 'Категория поста не указана';
           }
@@ -100,12 +124,29 @@ export class PostFormComponent implements OnInit {
   });
   }
 
+  get steps(): FormArray {
+    return this.postForm.get('steps') as FormArray;
+  }
 
+  updateSteps(count: number): void {
+    const steps = this.steps;
+    steps.clear();
+    for (let i = 0; i < count; i++) {
+      steps.push(this.fb.control('', [Validators.required, Validators.minLength(1)]));
+    }
+  }
 
   onFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length) {
       this.photo = input.files[0];
+      console.log('Selected file:', this.photo?.name);
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.previewUrl = reader.result as string;
+        console.log('Preview URL:', this.previewUrl);
+      };
+      reader.readAsDataURL(this.photo);
     }
   }
 
@@ -115,11 +156,20 @@ export class PostFormComponent implements OnInit {
       return;
     }
 
+    // Объединяем шаги в description
+    const steps = this.steps.controls.map(control => control.value).filter(step => step && step.trim());
+    console.log('Steps before joining:', steps); // Отладочный вывод
+    const description = steps.length > 0
+      ? steps.map((step: string, index: number) => `Шаг ${index + 1}: ${step}`).join('\n')
+      : 'Нет шагов';
+
+    console.log('Generated description:', description); // Отладочный вывод
+
     const post: Post = {
       idPost: this.isEdit ? Number(this.route.snapshot.paramMap.get('id')) : undefined,
       title: this.postForm.value.title,
       anons: this.postForm.value.anons,
-      description: this.postForm.value.description,
+      description: description,
       ingredients: this.postForm.value.ingredients,
       category: this.categories.find(cat => cat.catId === Number(this.postForm.value.category)) || { catId: this.postForm.value.category, name: '' },
       author: { username: '' },

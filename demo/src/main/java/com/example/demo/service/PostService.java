@@ -19,7 +19,7 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserService userService;
     private final UserRepository userRepository;
-
+    private final String uploadDirPath = "D:/Учеба/4 курс/Курсовая/full/demo/target/classes/static/Uploads/";
     public PostService(PostRepository postRepository, UserService userService, UserRepository userRepository) {
         this.postRepository = postRepository;
         this.userService = userService;
@@ -54,13 +54,23 @@ public class PostService {
         post.setDateUpdate(LocalDateTime.now());
 
         if (photo != null && !photo.isEmpty()) {
-            String fileName = UUID.randomUUID() + "_" + photo.getOriginalFilename();
-            File uploadDir = new File("Uploads");
+            String originalFilename = photo.getOriginalFilename();
+            String fileExtension = originalFilename != null && originalFilename.contains(".")
+                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                    : ".jpg";
+            String fileName = UUID.randomUUID().toString() + fileExtension;
+            File uploadDir = new File(uploadDirPath);
+            System.out.println("Upload directory: " + uploadDir.getAbsolutePath());
+            System.out.println("Upload dir exists: " + uploadDir.exists());
             if (!uploadDir.exists()) {
-                uploadDir.mkdirs();
+                System.out.println("Creating upload dir: " + uploadDir.mkdirs());
             }
-            photo.transferTo(new File("Uploads/" + fileName));
+            File destFile = new File(uploadDirPath + fileName);
+            System.out.println("Saving file to: " + destFile.getAbsolutePath());
+            System.out.println("File writable: " + destFile.getParentFile().canWrite());
+            photo.transferTo(destFile);
             post.setPhoto("/Uploads/" + fileName);
+            System.out.println("Post photo path: " + post.getPhoto());
         }
 
         return postRepository.save(post);
@@ -82,10 +92,31 @@ public class PostService {
         post.setDateUpdate(LocalDateTime.now());
 
         if (photo != null && !photo.isEmpty()) {
-            String fileName = UUID.randomUUID() + "_" + photo.getOriginalFilename();
-            photo.transferTo(new File("uploads/" + fileName));
-            post.setPhoto("/uploads/" + fileName);
+            if (post.getPhoto() != null) {
+                File oldFile = new File(uploadDirPath + post.getPhoto().substring("/Uploads/".length()));
+                if (oldFile.exists()) {
+                    oldFile.delete();
+                }
+            }
+            String originalFilename = photo.getOriginalFilename();
+            String fileExtension = originalFilename != null && originalFilename.contains(".")
+                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                    : ".jpg";
+            String fileName = UUID.randomUUID() + fileExtension;
+            File uploadDir = new File(uploadDirPath);
+            System.out.println("Upload directory: " + uploadDir.getAbsolutePath());
+            System.out.println("Upload dir exists: " + uploadDir.exists());
+            if (!uploadDir.exists()) {
+                System.out.println("Creating upload dir: " + uploadDir.mkdirs());
+            }
+            File destFile = new File(uploadDirPath + fileName);
+            System.out.println("Saving file to: " + destFile.getAbsolutePath());
+            System.out.println("File writable: " + destFile.getParentFile().canWrite());
+            photo.transferTo(destFile);
+            post.setPhoto("/Uploads/" + fileName);
+            System.out.println("Post photo path: " + post.getPhoto());
         }
+
 
         return postRepository.save(post);
     }
@@ -96,6 +127,13 @@ public class PostService {
 
         if (!post.getAuthor().getUsername().equals(username)) {
             throw new RuntimeException("You are not authorized to delete this post");
+        }
+
+        if (post.getPhoto() != null) {
+            File file = new File(uploadDirPath + post.getPhoto().substring("/Uploads/".length()));
+            if (file.exists()) {
+                file.delete();
+            }
         }
 
         postRepository.delete(post);
