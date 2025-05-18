@@ -7,13 +7,16 @@
     
     <div class="flex items-center space-x-8">
 
-      <!-- Добавляем рядом с другими элементами -->
       <div *ngIf="authService.isLoggedIn()" class="flex items-center">
         <a routerLink="/profile" class="flex items-center text-gray-700 hover:text-blue-500 ml-4">
           <i class="fas fa-user-circle mr-2"></i>
           Профиль
         </a>
       </div>
+
+      <a routerLink="/favorites" class="flex items-center text-gray-700 hover:text-blue-500">
+        <i class="fas fa-heart mr-2"></i> Избранное
+      </a>
 
       <div class="hidden md:flex space-x-6">
         <a routerLink="/posts" 

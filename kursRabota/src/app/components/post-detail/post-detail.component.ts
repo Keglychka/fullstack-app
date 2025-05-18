@@ -14,6 +14,7 @@ export class PostDetailComponent implements OnInit {
   post: Post | null = null;
   error: string | null = null;
   cameFromProfile: boolean = false;
+  isFavorite: boolean = false;
 
   constructor (
     private route: ActivatedRoute,
@@ -23,12 +24,13 @@ export class PostDetailComponent implements OnInit {
     private navigationService: NavigationService ) { }
 
     ngOnInit(): void {
+      this.checkFavorite();
       const id = Number(this.route.snapshot.paramMap.get('id'));
       this.cameFromProfile = this.navigationService.getPreviousUrl().includes('/profile');
       this.postService.getPostById(id).subscribe({
         next: (post) => {
           this.post = post;
-          console.log('Post loaded:', post);
+          this.checkFavoriteStatus();
         },
         error: (err) => {
           console.error('Failed to load post:', err);
@@ -75,6 +77,53 @@ export class PostDetailComponent implements OnInit {
         error: (err) => {
           console.error('Failed to delete post:', err);
           alert('Ошибка при удалении поста: ' + (err.error?.message || 'Попробуйте снова'));
+        }
+      });
+    }
+  }
+
+    checkFavorite(): void {
+    if (this.authService.isLoggedIn() && this.post) {
+      this.postService.getUserFavorites().subscribe({
+        next: (favorites) => {
+          this.isFavorite = favorites.some(fav => fav.idPost === this.post?.idPost);
+        }
+      });
+    }
+  }
+
+    toggleFavorite(): void {
+    if (!this.post) return;
+  
+    if (this.isFavorite) {
+      this.postService.removeFromFavorites(this.post.idPost!).subscribe({
+        next: () => {
+          this.isFavorite = false;
+        },
+        error: (err) => {
+          console.error('Failed to remove from favorites:', err);
+        }
+      });
+    } else {
+      this.postService.addToFavorites(this.post.idPost!).subscribe({
+        next: () => {
+          this.isFavorite = true;
+        },
+        error: (err) => {
+          console.error('Failed to add to favorites:', err);
+        }
+      });
+    }
+  }
+
+  checkFavoriteStatus(): void {
+    if (this.authService.isLoggedIn() && this.post) {
+      this.postService.getUserFavorites().subscribe({
+        next: (favorites) => {
+          this.isFavorite = favorites.some(fav => fav.idPost === this.post?.idPost);
+        },
+        error: (err) => {
+          console.error('Error checking favorite status:', err);
         }
       });
     }

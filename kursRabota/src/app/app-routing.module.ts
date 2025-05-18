@@ -6,6 +6,7 @@ import { PostListComponent } from './components/post-list/post-list.component';
 import { PostDetailComponent } from './components/post-detail/post-detail.component';
 import { PostFormComponent } from './components/post-form/post-form.component';
 import { ProfileComponent } from './components/profile/profile.component';
+import { FavoritesComponent } from './components/favorites/favorites.component';
 import { AuthGuard } from './guards/auth.guard';
 
 const routes: Routes = [
@@ -16,6 +17,7 @@ const routes: Routes = [
   { path: 'posts/edit/:id', component: PostFormComponent, canActivate: [AuthGuard] },
   { path: 'profile', component: ProfileComponent, canActivate: [AuthGuard] },
   { path: 'posts/:id', component: PostDetailComponent },
+  { path: 'favorites', component: FavoritesComponent, canActivate: [AuthGuard] },
   { path: '', redirectTo: '/posts', pathMatch: 'full' }
 ];
 

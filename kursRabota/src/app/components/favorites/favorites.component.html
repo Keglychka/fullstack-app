@@ -1,0 +1,61 @@
+<div class="container mx-auto p-4 animate-fade-in">
+  <h1 class="text-3xl font-bold mb-6 text-gray-800 flex items-center">
+    <i class="fas fa-heart text-red-500 mr-3"></i> Избранные рецепты
+  </h1>
+
+  <div *ngIf="loading" class="flex justify-center items-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+  </div>
+
+  <div *ngIf="!loading && favorites.length === 0" class="text-center py-12">
+    <i class="fas fa-heart-broken text-4xl text-gray-300 mb-4"></i>
+    <p class="text-xl text-gray-500">У вас пока нет избранных рецептов</p>
+    <a routerLink="/posts" class="mt-4 inline-block bg-blue-500 hover:bg-blue-600 text-white px-6 py-2 rounded-md transition duration-200">
+      Найти рецепты
+    </a>
+  </div>
+
+  <!-- Сетка постов как в post-list -->
+  <div *ngIf="!loading && favorites.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let post of favorites" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-200 transform hover:-translate-y-1">
+      <!-- Изображение поста -->
+      <div class="relative h-48 overflow-hidden">
+        <img *ngIf="post.photo" [src]="post.photo" [alt]="post.title" class="w-full h-full object-cover">
+        <div *ngIf="!post.photo" class="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
+          <i class="fas fa-camera text-4xl"></i>
+        </div>
+        <!-- Бейдж "В избранном" -->
+        <div class="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold flex items-center">
+          <i class="fas fa-heart mr-1"></i> В избранном
+        </div>
+      </div>
+
+      <!-- Тело карточки -->
+      <div class="p-4">
+        <h3 class="text-xl font-bold mb-2 text-gray-800">{{ post.title }}</h3>
+        <p class="text-gray-600 mb-4 line-clamp-2">{{ post.anons }}</p>
+        
+        <!-- Информация о авторе и категории -->
+        <div class="flex items-center text-sm text-gray-500 mb-3">
+          <i class="fas fa-user mr-1"></i>
+          <span class="mr-3">{{ post.author.username }}</span>
+          <i class="fas fa-tag mr-1"></i>
+          <span>{{ post.category.name }}</span>
+        </div>
+
+        <!-- Кнопки -->
+        <div class="flex justify-between items-center">
+          <a [routerLink]="['/posts', post.idPost]" 
+           class="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white px-4 py-2 rounded-md font-medium transition duration-200 transform hover:scale-[1.02] shadow-md hover:shadow-lg">
+          Прочитать
+        </a>
+          
+          <button (click)="removeFromFavorites(post.idPost!)" 
+                  class="text-red-500 hover:text-red-700 flex items-center">
+            <i class="fas fa-heart mr-2"></i> Удалить
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -20,6 +20,7 @@ import { AuthGuard } from './guards/auth.guard';
 import { HeaderComponent } from './components/header/header.component';
 import { ProfileComponent } from './components/profile/profile.component';
 import { NavigationService } from './services/navigation.service';
+import { FavoritesComponent } from './components/favorites/favorites.component';
 
 @NgModule({
   declarations: [
@@ -30,7 +31,8 @@ import { NavigationService } from './services/navigation.service';
     PostDetailComponent,
     PostFormComponent,
     HeaderComponent,
-    ProfileComponent
+    ProfileComponent,
+    FavoritesComponent
   ],
   imports: [
     BrowserModule,

@@ -2,8 +2,11 @@ package com.example.demo.service;
 
 import com.example.demo.entity.Post;
 import com.example.demo.entity.User;
+import com.example.demo.entity.Favorite;
+import com.example.demo.repository.FavoriteRepository;
 import com.example.demo.repository.PostRepository;
 import com.example.demo.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,6 +15,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class PostService {
@@ -19,11 +23,14 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserService userService;
     private final UserRepository userRepository;
+    private final FavoriteRepository favoriteRepository;
     private final String uploadDirPath = "D:/Учеба/4 курс/Курсовая/full/demo/target/classes/static/Uploads/";
-    public PostService(PostRepository postRepository, UserService userService, UserRepository userRepository) {
+    public PostService(PostRepository postRepository, UserService userService, UserRepository userRepository,
+                       FavoriteRepository favoriteRepository) {
         this.postRepository = postRepository;
         this.userService = userService;
         this.userRepository = userRepository;
+        this.favoriteRepository = favoriteRepository;
     }
 
     public List<Post> getAllPosts() {
@@ -141,5 +148,51 @@ public class PostService {
 
     public List<Post> getPostsByAuthor(String username) {
         return postRepository.findByAuthorUsernameOrderByDateCreateDesc(username);
+    }
+
+    public List<Post> getUserFavorites(String username) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("User not found with username: " + username);
+        }
+        return favoriteRepository.findByUser(user).stream()
+                .map(Favorite::getPost)
+                .collect(Collectors.toList());
+    }
+
+    public void addToFavorites(Long postId, String username) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("User not found with username: " + username);
+        }
+
+        Post post = postRepository.findById(postId).orElse(null);
+        if (post == null) {
+            throw new RuntimeException("Post not found with id: " + postId);
+        }
+
+        if (favoriteRepository.existsByUserAndPost(user, post)) {
+            throw new RuntimeException("Post already in favorites");
+        }
+
+        Favorite favorite = new Favorite();
+        favorite.setUser(user);
+        favorite.setPost(post);
+        favoriteRepository.save(favorite);
+    }
+
+    @Transactional
+    public void removeFromFavorites(Long postId, String username) {
+        User user = userRepository.findByUsername(username);
+        if (user == null) {
+            throw new RuntimeException("User not found with username: " + username);
+        }
+
+        Post post = postRepository.findById(postId).orElse(null);
+        if (post == null) {
+            throw new RuntimeException("Post not found with id: " + postId);
+        }
+
+        favoriteRepository.deleteByUserAndPost(user, post);
     }
 }

@@ -54,4 +54,20 @@ export class PostService {
   getPostsByAuthor(username: string): Observable<Post[]> {
     return this.http.get<Post[]>(`${this.apiUrl}/api/posts/author/${username}`);
   }
+
+  getUserFavorites(): Observable<Post[]> {
+    return this.http.get<Post[]>(`${this.apiUrl}/api/posts/favorites`);
+  }
+
+  addToFavorites(postId: number): Observable<void> {
+      return this.http.post<void>(`${this.apiUrl}/api/posts/${postId}/favorite`, {});
+    }
+
+  removeFromFavorites(postId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/api/posts/${postId}/favorite`, {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json'
+      })
+    });
+  }
 }

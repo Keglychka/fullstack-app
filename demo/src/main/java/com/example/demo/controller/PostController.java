@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Post;
 import com.example.demo.service.PostService;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -91,6 +92,35 @@ public class PostController {
             return ResponseEntity.ok(posts);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @GetMapping("/favorites")
+    public List<Post> getUserFavorites() {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        return postService.getUserFavorites(username);
+    }
+
+    @PostMapping("/{id}/favorite")
+    public ResponseEntity<?> addToFavorites(@PathVariable Long id) {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            postService.addToFavorites(id, username);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @DeleteMapping("/{id}/favorite")
+    @Transactional
+    public ResponseEntity<?> removeFromFavorites(@PathVariable Long id) {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            postService.removeFromFavorites(id, username);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 }
