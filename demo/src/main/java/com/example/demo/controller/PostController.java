@@ -2,6 +2,7 @@ package com.example.demo.controller;
 
 import com.example.demo.entity.Post;
 import com.example.demo.service.PostService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -80,6 +81,16 @@ public class PostController {
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Failed to delete post: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/author/{username}")
+    public ResponseEntity<List<Post>> getPostsByAuthor(@PathVariable String username) {
+        try {
+            List<Post> posts = postService.getPostsByAuthor(username);
+            return ResponseEntity.ok(posts);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

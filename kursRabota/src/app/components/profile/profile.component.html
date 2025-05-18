@@ -1,0 +1,44 @@
+<div class="container mx-auto py-8 px-4">
+  <h1 class="text-3xl font-bold mb-6">Мои рецепты</h1>
+
+  <!-- Сообщение об ошибке -->
+  <div *ngIf="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+    {{ error }}
+  </div>
+
+  <!-- Индикатор загрузки -->
+  <div *ngIf="isLoading" class="flex justify-center py-12">
+    <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+  </div>
+
+  <!-- Пустое состояние -->
+  <div *ngIf="!isLoading && userPosts.length === 0" class="bg-blue-50 p-6 rounded-lg text-center">
+    <i class="fas fa-book-open text-4xl text-blue-300 mb-3"></i>
+    <p class="text-lg">Вы пока не создали ни одного рецепта</p>
+    <a routerLink="/posts/create" class="btn btn-primary mt-4 inline-block">
+      Создать первый рецепт
+    </a>
+  </div>
+
+  <!-- Список рецептов -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div *ngFor="let post of userPosts" class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+      <img *ngIf="post.photo" [src]="post.photo" class="w-full h-48 object-cover">
+      <div class="p-4">
+        <h3 class="font-bold text-xl mb-2">{{ post.title }}</h3>
+        <p class="text-gray-600 mb-4">{{ post.anons }}</p>
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-gray-500">
+            {{ post.dateCreate | date:'mediumDate' }}
+          </span>
+          <div class="flex space-x-2">
+            <a [routerLink]="['/posts', post.idPost]" 
+           class="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white px-4 py-2 rounded-md font-medium transition duration-200 transform hover:scale-[1.02] shadow-md hover:shadow-lg">
+          Прочитать
+        </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -81,4 +81,17 @@ export class AuthService {
   logout(): void {
     localStorage.removeItem(this.tokenKey);
   }
+
+  getUsername(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+    
+    // Простейший парсинг JWT (в реальном проекте используйте @auth0/angular-jwt)
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.sub || null;
+    } catch (e) {
+      return null;
+    }
+  }
 }

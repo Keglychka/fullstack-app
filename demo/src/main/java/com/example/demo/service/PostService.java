@@ -138,4 +138,8 @@ public class PostService {
 
         postRepository.delete(post);
     }
+
+    public List<Post> getPostsByAuthor(String username) {
+        return postRepository.findByAuthorUsernameOrderByDateCreateDesc(username);
+    }
 }

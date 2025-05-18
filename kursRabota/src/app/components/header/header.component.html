@@ -1,12 +1,52 @@
-<nav class="bg-gray-800 p-4">
+<nav class="bg-white p-4 sticky top-0 z-50 shadow-md border-b border-gray-100">
   <div class="container mx-auto flex justify-between items-center">
-    <a routerLink="/" class="text-white text-lg font-bold">Курсач</a>
-    <div class="space-x-4">
-      <a routerLink="/posts" class="text-white hover:text-gray-300">Рецепты</a>
-      <a *ngIf="authService.isLoggedIn()" routerLink="/posts/create" class="text-white hover:text-gray-300">Написать рецепт</a>
-      <a *ngIf="!authService.isLoggedIn()" routerLink="/login" class="text-white hover:text-gray-300">Войти</a>
-      <a *ngIf="!authService.isLoggedIn()" routerLink="/register" class="text-white hover:text-gray-300">Регистрация</a>
-      <button *ngIf="authService.isLoggedIn()" (click)="logout()" class="text-white hover:text-gray-300">Выйти</button>
+    <a routerLink="/" class="flex items-center text-2xl font-bold text-gray-800 hover:text-blue-500 transition duration-200">
+      <span class="bg-gradient-to-r from-blue-500 to-teal-500 text-transparent bg-clip-text">Курсач</span>
+      <span class="ml-2 w-8 h-1 bg-gradient-to-r from-blue-500 to-teal-500"></span>
+    </a>
+    
+    <div class="flex items-center space-x-8">
+
+      <!-- Добавляем рядом с другими элементами -->
+      <div *ngIf="authService.isLoggedIn()" class="flex items-center">
+        <a routerLink="/profile" class="flex items-center text-gray-700 hover:text-blue-500 ml-4">
+          <i class="fas fa-user-circle mr-2"></i>
+          Профиль
+        </a>
+      </div>
+
+      <div class="hidden md:flex space-x-6">
+        <a routerLink="/posts" 
+           class="text-gray-600 hover:text-blue-500 font-medium flex items-center transition duration-200 group">
+          <i class="fas fa-book-open mr-2 text-gray-400 group-hover:text-blue-500 transition duration-200"></i>
+          Рецепты
+        </a>
+        <a *ngIf="authService.isLoggedIn()" 
+           routerLink="/posts/create" 
+           class="text-gray-600 hover:text-blue-500 font-medium flex items-center transition duration-200 group">
+          <i class="fas fa-plus-circle mr-2 text-gray-400 group-hover:text-blue-500 transition duration-200"></i>
+          Создать рецепт
+        </a>
+      </div>
+      
+      <div class="flex items-center space-x-4">
+        <a *ngIf="!authService.isLoggedIn()" 
+           routerLink="/login" 
+           class="text-gray-600 hover:text-blue-500 font-medium px-3 py-1 rounded-md transition duration-200 hover:bg-blue-50">
+          Войти
+        </a>
+        <a *ngIf="!authService.isLoggedIn()" 
+           routerLink="/register" 
+           class="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white px-4 py-2 rounded-md font-medium transition duration-200 transform hover:scale-[1.02] shadow-md hover:shadow-lg">
+          Регистрация
+        </a>
+        <button *ngIf="authService.isLoggedIn()" 
+                (click)="logout()" 
+                class="text-gray-600 hover:text-red-500 font-medium px-3 py-1 rounded-md transition duration-200 hover:bg-red-50 flex items-center">
+          <i class="fas fa-sign-out-alt mr-2"></i>
+          Выйти
+        </button>
+      </div>
     </div>
   </div>
 </nav>

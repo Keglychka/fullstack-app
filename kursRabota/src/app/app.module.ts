@@ -3,6 +3,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { HttpClientModule } from '@angular/common/http';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { LoginComponent } from './components/login/login.component';
@@ -17,6 +18,8 @@ import { HttpInterceptorService } from './services/http-interceptor';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthGuard } from './guards/auth.guard';
 import { HeaderComponent } from './components/header/header.component';
+import { ProfileComponent } from './components/profile/profile.component';
+import { NavigationService } from './services/navigation.service';
 
 @NgModule({
   declarations: [
@@ -26,7 +29,8 @@ import { HeaderComponent } from './components/header/header.component';
     PostListComponent,
     PostDetailComponent,
     PostFormComponent,
-    HeaderComponent
+    HeaderComponent,
+    ProfileComponent
   ],
   imports: [
     BrowserModule,
@@ -34,12 +38,14 @@ import { HeaderComponent } from './components/header/header.component';
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
+    CommonModule,
     AppRoutingModule
   ],
   providers: [
     AuthService,
     PostService,
     CategoryService,
+    NavigationService,
     AuthGuard,
     {
       provide: HTTP_INTERCEPTORS,

@@ -9,4 +9,5 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> findAllByOrderByDateCreateDesc();
     List<Post> findByCategoryCatIdOrderByDateCreateDesc(Long catId);
     List<Post> findByTitleContainingIgnoreCaseOrderByDateCreateDesc(String title);
+    List<Post> findByAuthorUsernameOrderByDateCreateDesc(String username);
 }

@@ -50,4 +50,8 @@ export class PostService {
   deletePost(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/api/posts/${id}`);
   }
+
+  getPostsByAuthor(username: string): Observable<Post[]> {
+    return this.http.get<Post[]>(`${this.apiUrl}/api/posts/author/${username}`);
+  }
 }

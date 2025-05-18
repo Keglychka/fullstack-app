@@ -1,40 +1,116 @@
-<div class="container mx-auto p-4">
-  <div *ngIf="error" class="text-red-500 mb-4 bg-red-100 p-2 rounded">{{ error }}</div>
+<div class="container mx-auto p-4 animate-fade-in">
+  <div *ngIf="error" class="text-red-500 mb-4 bg-red-100 p-2 rounded flex items-center">
+    <i class="fas fa-exclamation-circle mr-2"></i>{{ error }}
+  </div>
   <div *ngIf="post; else loading" class="bg-white p-6 rounded-lg shadow-md">
     <h2 class="text-3xl font-bold mb-2 text-gray-800 relative">
-      {{ post.title }}
-      <span class="block w-16 h-1 bg-blue-500 mt-2"></span>
+      <span class="bg-gradient-to-r from-blue-500 to-teal-500 text-transparent bg-clip-text">{{ post.title }}</span>
+      <span class="block w-16 h-1 bg-gradient-to-r from-blue-500 to-teal-500 mt-2"></span>
     </h2>
-    <img *ngIf="post.photo" [src]="post.photo" alt="{{ post.title }}" class="w-full max-w-lg mb-4 rounded-lg object-cover shadow-sm">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-      <p class="text-gray-700"><span class="font-semibold text-blue-600">Автор:</span> {{ post.author.username }}</p>
-      <p class="text-gray-700"><span class="font-semibold text-blue-600">Категория:</span> {{ post.category.name }}</p>
-      <p class="text-gray-700 col-span-2"><span class="font-semibold text-blue-600">Краткое описание:</span> <span class="italic bg-blue-50 p-1 rounded">{{ post.anons }}</span></p>
-      <p class="text-gray-700 col-span-2 whitespace-pre-wrap"><span class="font-semibold text-blue-600">Ингредиенты:</span> {{ post.ingredients }}</p>
-    </div>
-    <div class="mb-4">
-      <h3 class="text-xl font-bold text-gray-800 mb-3">Шаги приготовления:</h3>
-      <ol class="space-y-3">
-        <li *ngFor="let step of getSteps(); let i = index" class="flex items-start p-3 bg-blue-50 rounded-lg shadow-sm animate-fade-in">
-          <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-blue-500 text-white rounded-full mr-3">
-            {{ i + 1 }}
-          </span>
-          <span class="text-gray-700">{{ step }}</span>
-        </li>
-      </ol>
-      <p *ngIf="getSteps().length === 0" class="text-gray-500 italic">Шаги не указаны</p>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-      <p class="text-gray-600"><span class="font-semibold text-blue-600">Создано:</span> {{ post.dateCreate | date }}</p>
-      <p class="text-gray-600"><span class="font-semibold text-blue-600">Обновлено:</span> {{ post.dateUpdate | date }}</p>
-    </div>
-    <div class="flex space-x-4">
-      <a [routerLink]="['/posts']" class="text-blue-500 hover:underline hover:text-blue-600 transition duration-200">На главный экран</a>
-      <a *ngIf="isAuthor()" [routerLink]="['/posts/edit', post.idPost]" class="text-green-500 hover:underline hover:text-green-600 transition duration-200">Редактировать</a>
-      <button *ngIf="isAuthor()" (click)="deletePost()" class="text-red-500 hover:underline hover:text-red-600 transition duration-200">Удалить</button>
+    
+    <div class="flex flex-col md:flex-row gap-6 mt-6">
+      <div class="md:w-1/2">
+    <div class="w-full h-auto max-h-96 bg-gray-100 rounded-lg shadow-md flex items-center justify-center overflow-hidden">
+      <ng-container *ngIf="post.photo; else noPhoto">
+        <img [src]="post.photo" alt="{{ post.title }}" class="w-full h-full object-cover">
+      </ng-container>
+      <ng-template #noPhoto>
+        <div class="text-center p-6 text-gray-500">
+          <i class="fas fa-camera text-4xl mb-3 text-gray-300"></i>
+          <p class="text-lg font-medium">Здесь могла быть фотография</p>
+        </div>
+      </ng-template>
     </div>
   </div>
+      
+      <div class="md:w-1/2 space-y-4">
+        <div class="bg-blue-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold text-blue-600 mb-2 flex items-center">
+            <i class="fas fa-info-circle mr-2"></i> Информация о рецепте
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <p class="text-gray-700">
+              <span class="font-semibold text-blue-600 flex items-center">
+                <i class="fas fa-user mr-1"></i> Автор:
+              </span> 
+              {{ post.author.username }}
+            </p>
+            <p class="text-gray-700">
+              <span class="font-semibold text-blue-600 flex items-center">
+                <i class="fas fa-tag mr-1"></i> Категория:
+              </span> 
+              {{ post.category.name }}
+            </p>
+            <p class="text-gray-700 col-span-2">
+              <span class="font-semibold text-blue-600 flex items-center">
+                <i class="fas fa-calendar mr-1"></i> Создано:
+              </span> 
+              {{ post.dateCreate | date:'mediumDate' }}
+            </p>
+            <p *ngIf="post.dateUpdate" class="text-gray-700 col-span-2">
+              <span class="font-semibold text-blue-600 flex items-center">
+                <i class="fas fa-sync-alt mr-1"></i> Обновлено:
+              </span> 
+              {{ post.dateUpdate | date:'mediumDate' }}
+            </p>
+          </div>
+        </div>
+        
+        <div class="bg-blue-50 p-4 rounded-lg">
+          <h3 class="text-lg font-semibold text-blue-600 mb-2 flex items-center">
+            <i class="fas fa-carrot mr-2"></i> Ингредиенты
+          </h3>
+          <p class="text-gray-700 whitespace-pre-wrap">{{ post.ingredients }}</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="mt-6 space-y-6">
+      <div>
+        <h3 class="text-xl font-bold text-gray-800 mb-3 flex items-center">
+          <i class="fas fa-clipboard-list mr-2 text-blue-500"></i> Шаги приготовления:
+        </h3>
+        <ol class="space-y-3">
+          <li *ngFor="let step of getSteps(); let i = index" 
+              class="flex items-start p-4 bg-white border border-gray-200 rounded-lg shadow-sm hover:shadow-md transition duration-200">
+            <span class="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-gradient-to-r from-blue-500 to-teal-500 text-white rounded-full mr-3 font-bold">
+              {{ i + 1 }}
+            </span>
+            <span class="text-gray-700">{{ step }}</span>
+          </li>
+        </ol>
+        <p *ngIf="getSteps().length === 0" class="text-gray-500 italic mt-2">
+          <i class="fas fa-info-circle mr-1"></i> Шаги не указаны
+        </p>
+      </div>
+      
+      <div class="flex flex-wrap gap-3 mt-8">
+        <button (click)="navigateBack()" class="border border-gray-300 text-gray-600 hover:bg-gray-50 px-4 py-2 rounded-md font-medium transition duration-200 flex items-center">
+          <i class="fas fa-arrow-left mr-2"></i>
+          {{ cameFromProfile ? 'В профиль' : 'На главный экран' }}
+        </button>
+        <a *ngIf="isAuthor()" 
+           [routerLink]="['/posts/edit', post.idPost]" 
+           class="border border-blue-500 text-blue-500 hover:bg-blue-50 px-4 py-2 rounded-md font-medium transition duration-200 flex items-center">
+          <i class="fas fa-edit mr-2"></i> Редактировать
+        </a>
+        <button *ngIf="isAuthor()" 
+                (click)="deletePost()" 
+                class="border border-red-500 text-red-500 hover:bg-red-50 px-4 py-2 rounded-md font-medium transition duration-200 flex items-center">
+          <i class="fas fa-trash-alt mr-2"></i> Удалить
+        </button>
+        <a *ngIf="authService.isLoggedIn()" 
+           routerLink="/posts/create" 
+           class="bg-gradient-to-r from-blue-500 to-teal-500 hover:from-blue-600 hover:to-teal-600 text-white px-4 py-2 rounded-md font-medium transition duration-200 transform hover:scale-[1.02] shadow-md hover:shadow-lg flex items-center ml-auto">
+          <i class="fas fa-plus-circle mr-2"></i> Новый рецепт
+        </a>
+      </div>
+    </div>
+  </div>
+  
   <ng-template #loading>
-    <p class="text-gray-500">Загрузка...</p>
+    <div class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    </div>
   </ng-template>
 </div>
