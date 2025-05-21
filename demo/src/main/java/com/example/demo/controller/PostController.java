@@ -48,7 +48,9 @@ public class PostController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createPost(@RequestPart("post") Post post, @RequestPart(value = "photo", required = false) MultipartFile photo) {
+    public ResponseEntity<?> createPost(
+            @RequestPart("post") Post post,
+            @RequestPart(value = "photo", required = false) MultipartFile photo) {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
             System.out.println("Creating post with username: " + username);
@@ -62,7 +64,10 @@ public class PostController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updatePost(@PathVariable Long id, @RequestPart("post") Post postDetails, @RequestPart(value = "photo", required = false) MultipartFile photo) {
+    public ResponseEntity<?> updatePost(
+            @PathVariable Long id,
+            @RequestPart("post") Post postDetails,
+            @RequestPart(value = "photo", required = false) MultipartFile photo) {
         try {
             String username = SecurityContextHolder.getContext().getAuthentication().getName();
             Post updatedPost = postService.updatePost(id, postDetails, photo, username);

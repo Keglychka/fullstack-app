@@ -5,8 +5,7 @@ import { CategoryService } from '../../services/category.service';
 import { Post } from '../../models/post.model';
 import { Category } from '../../models/category.model';
 import { AuthService } from '../../services/auth.service';
-import { FormBuilder, FormGroup, Validators, AbstractControl, FormArray } from '@angular/forms';
-
+import { FormBuilder, FormGroup, Validators, FormArray, FormControl, AbstractControl } from '@angular/forms';
 
 @Component({
   selector: 'app-post-form',
@@ -19,10 +18,10 @@ export class PostFormComponent implements OnInit {
   categories: Category[] = [];
   isEdit = false;
   error: string | null = null;
-  stepCountOptions: number[] = Array.from({ length: 20 }, (_, i) => i + 1);
+  stepCountOptions = Array.from({ length: 20 }, (_, i) => i + 1);
   previewUrl: string | null = null;
   postPhoto: string | null = null;
-   private baseUrl = 'http://localhost:8080';
+  private baseUrl = 'http://localhost:8080';
 
   constructor(
     private fb: FormBuilder,
@@ -39,158 +38,242 @@ export class PostFormComponent implements OnInit {
       ingredients: ['', [Validators.required]],
       category: ['', Validators.required],
       stepCount: [1, [Validators.required, Validators.min(1), Validators.max(20)]],
-      steps: this.fb.array([])
+      steps: this.fb.array([]),
+      preparationTime: [0, [Validators.required, Validators.min(0)]],
+      cookingTime: [0, [Validators.required, Validators.min(0)]],
+      temperature: ['', [Validators.min(0), Validators.max(300)]],
+      ingredientItems: this.fb.array([]),
+      ingredientAmounts: this.fb.group({})
     });
   }
 
   ngOnInit(): void {
-    console.log('PostFormComponent: Initializing');
-    // Проверка токена
     const token = this.authService.getToken();
     if (!token) {
-      console.error('No token found');
       this.error = 'User not authenticated';
       this.router.navigate(['/login']);
       return;
     }
-    console.log('Token found:', token);
 
-    // Инициализация шагов
+    this.initFormControls();
+    this.loadCategories();
+
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.isEdit = true;
+      this.loadPostForEdit(+id);
+    }
+  }
+
+  private initFormControls(): void {
     this.postForm.get('stepCount')?.valueChanges.subscribe(count => {
       this.updateSteps(count);
     });
     this.updateSteps(1);
 
-    // Проверка режима редактирования
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.isEdit = true;
-      this.postService.getPostById(Number(id)).subscribe({
-        next: (post) => {
-          console.log('Post loaded for editing:', post);
-          // Разбиваем description на шаги
-          const steps = post.description
-            ? post.description.split('\n').filter(step => step.startsWith('Шаг')).map(step => step.replace(/^Шаг \d+: /, ''))
-            : [''];
-          this.postForm.patchValue({
-            title: post.title,
-            anons: post.anons,
-            ingredients: post.ingredients,
-            category: post.category.catId,
-            stepCount: steps.length || 1
-          });
-          this.updateSteps(steps.length || 1);
-          steps.forEach((step, index) => {
-            this.steps.at(index).setValue(step);
-          });
-          if (post.photo) {
-            this.postPhoto = `${this.baseUrl}${post.photo}`; // Учитываем ведущий слэш в /Uploads/
-            console.log('Post photo URL:', this.postPhoto);
-          }
-          if (!post.category?.catId) {
-            this.error = 'Категория поста не указана';
-          }
-        },
-        error: (err) => {
-          console.error('Failed to load post:', err);
-          this.error = 'Failed to load post';
-        }
-      });
-    }
-
-      // Загрузка категорий
-  this.categoryService.getAllCategories().subscribe({
-    next: (categories) => {
-      console.log('Категории загружены:', categories);
-      this.categories = categories;
-      if (categories.length === 0) {
-        console.warn('No categories found, using fallback categories');
-        this.categories = [
-          { catId: 1, name: 'Русская кухня' },
-          { catId: 2, name: 'Грузинская кухня' },
-          { catId: 3, name: 'Итальянская кухня' }
-        ];
-      }
-    },
-    error: (err) => {
-      console.error('Ошибка загрузки категории:', err);
-      this.error = 'Failed to load categories. Using default categories.';
-      this.categories = [
-        { catId: 1, name: 'Русская кухня' },
-        { catId: 2, name: 'Грузинская кухня' },
-        { catId: 3, name: 'Итальянская кухня' }
-      ];
-    }
-  });
+    this.postForm.get('ingredients')?.valueChanges.subscribe(ingredients => {
+      this.updateIngredientsList(ingredients);
+    });
   }
 
+  private loadPostForEdit(id: number): void {
+    this.postService.getPostById(id).subscribe({
+      next: (post) => {
+        const steps = post.description?.split('\n')
+          .filter(step => step.startsWith('Шаг'))
+          .map(step => step.replace(/^Шаг \d+: /, '')) || [''];
+
+        this.postForm.patchValue({
+          title: post.title,
+          anons: post.anons,
+          ingredients: post.ingredients,
+          category: post.category.catId,
+          stepCount: steps.length || 1,
+          preparationTime: post.preparationTime || 0,
+          cookingTime: post.cookingTime || 0,
+          temperature: post.temperature || ''
+        });
+
+        this.updateSteps(steps.length || 1);
+        steps.forEach((step, i) => this.steps.at(i).setValue(step));
+
+        if (post.photo) {
+          this.postPhoto = `${this.baseUrl}${post.photo}`;
+        }
+
+        if (post.ingredientItems?.length) {
+          post.ingredientItems.forEach(item => {
+            this.addIngredient(item.name, item.amount, item.unit);
+          });
+        } else if (post.ingredientAmounts) {
+          Object.entries(post.ingredientAmounts).forEach(([name, amount]) => {
+            this.addIngredient(name, amount, 'г'); // По умолчанию граммы
+          });
+        }
+      },
+      error: (err) => this.error = 'Failed to load post'
+    });
+  }
+
+  private loadCategories(): void {
+    this.categoryService.getAllCategories().subscribe({
+      next: (categories) => {
+        this.categories = categories.length ? categories : this.getDefaultCategories();
+      },
+      error: (err) => {
+        this.error = 'Failed to load categories';
+        this.categories = this.getDefaultCategories();
+      }
+    });
+  }
+
+  private getDefaultCategories(): Category[] {
+    return [
+      { catId: 1, name: 'Русская кухня' },
+      { catId: 2, name: 'Грузинская кухня' },
+      { catId: 3, name: 'Итальянская кухня' }
+    ];
+  }
+
+  // Ingredient Items methods
+  get ingredientItems(): FormArray {
+    return this.postForm.get('ingredientItems') as FormArray;
+  }
+
+  addIngredient(name: string = '', amount: number = 0, unit: string = 'г'): void {
+    this.ingredientItems.push(this.fb.group({
+      name: [name, [Validators.required, Validators.maxLength(50)]],
+      amount: [amount, [Validators.required, Validators.min(0)]],
+      unit: [unit, Validators.required]
+    }));
+  }
+
+  removeIngredient(index: number): void {
+    this.ingredientItems.removeAt(index);
+  }
+
+  // Steps methods
   get steps(): FormArray {
     return this.postForm.get('steps') as FormArray;
   }
 
-  updateSteps(count: number): void {
+  private updateSteps(count: number): void {
     const steps = this.steps;
-    steps.clear();
-    for (let i = 0; i < count; i++) {
-      steps.push(this.fb.control('', [Validators.required, Validators.minLength(1)]));
+    while (steps.length !== count) {
+      if (steps.length < count) {
+        steps.push(this.fb.control('', [Validators.required, Validators.minLength(1)]));
+      } else {
+        steps.removeAt(steps.length - 1);
+      }
     }
   }
 
+  // Ingredients methods
+  private updateIngredientsList(ingredientsStr: string): void {
+    const ingredientsList = this.parseIngredients(ingredientsStr);
+    this.updateIngredientAmountsControls(ingredientsList);
+  }
+
+  private parseIngredients(ingredientsStr: string): string[] {
+    if (!ingredientsStr) return [];
+    return ingredientsStr
+      .split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0)
+      .map(line => line.split(':')[0].trim());
+  }
+
+  getIngredientUnit(ingredient: string): string {
+    const ingredientsStr = this.postForm.get('ingredients')?.value;
+    if (!ingredientsStr) return '';
+    
+    const lines: string[] = ingredientsStr.split('\n');
+    const line = lines.find((l: string) => l.trim().startsWith(ingredient));
+    if (!line) return '';
+    
+    const parts = line.split(':');
+    if (parts.length < 2) return '';
+    
+    const amountPart = parts[1].trim();
+    const unitMatch = amountPart.match(/([^\d\s]+)$/);
+    return unitMatch ? unitMatch[0].trim() : '';
+  }
+
+  private updateIngredientAmountsControls(ingredientsList: string[]): void {
+    const amountsGroup = this.postForm.get('ingredientAmounts') as FormGroup;
+    
+    Object.keys(amountsGroup.controls).forEach(controlName => {
+      amountsGroup.removeControl(controlName);
+    });
+    
+    ingredientsList.forEach(ingredient => {
+      amountsGroup.addControl(ingredient, new FormControl(0, [Validators.required, Validators.min(0)]));
+    });
+  }
+
+  // File handling
   onFileChange(event: Event): void {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length) {
+    if (input.files?.length) {
       this.photo = input.files[0];
-      console.log('Selected file:', this.photo?.name);
       const reader = new FileReader();
-      reader.onload = () => {
-        this.previewUrl = reader.result as string;
-        console.log('Preview URL:', this.previewUrl);
-      };
+      reader.onload = () => this.previewUrl = reader.result as string;
       reader.readAsDataURL(this.photo);
     }
   }
 
+  // Form submission
   submit(): void {
     if (this.postForm.invalid) {
       this.postForm.markAllAsTouched();
       return;
     }
 
-    // Объединяем шаги в description
-    const steps = this.steps.controls.map(control => control.value).filter(step => step && step.trim());
-    console.log('Steps before joining:', steps); // Отладочный вывод
+    const postData = this.preparePostData();
+    const action = this.isEdit
+      ? this.postService.updatePost(postData.idPost!, postData, this.photo)
+      : this.postService.createPost(postData, this.photo);
+
+    action.subscribe({
+      next: () => this.router.navigate(['/posts']),
+      error: (err) => this.error = err.error?.message || 'Failed to save post'
+    });
+  }
+
+  private preparePostData(): Post {
+    const steps = this.steps.controls.map(control => control.value).filter(step => step?.trim());
     const description = steps.length > 0
-      ? steps.map((step: string, index: number) => `Шаг ${index + 1}: ${step}`).join('\n')
+      ? steps.map((step, index) => `Шаг ${index + 1}: ${step}`).join('\n')
       : 'Нет шагов';
 
-    console.log('Generated description:', description); // Отладочный вывод
+    // Преобразуем ingredientItems в ingredientAmounts для совместимости
+    const ingredientAmounts: { [key: string]: number } = {};
+    this.ingredientItems.value.forEach((item: any) => {
+      ingredientAmounts[item.name] = item.amount;
+    });
 
-    const post: Post = {
+    // Генерируем текстовое представление ингредиентов
+    const ingredientsText = this.ingredientItems.value
+      .map((item: any) => `${item.name}: ${item.amount} ${item.unit}`)
+      .join('\n');
+
+    return {
       idPost: this.isEdit ? Number(this.route.snapshot.paramMap.get('id')) : undefined,
       title: this.postForm.value.title,
       anons: this.postForm.value.anons,
       description: description,
-      ingredients: this.postForm.value.ingredients,
-      category: this.categories.find(cat => cat.catId === Number(this.postForm.value.category)) || { catId: this.postForm.value.category, name: '' },
+      ingredients: ingredientsText, // Сохраняем для обратной совместимости
+      ingredientItems: this.ingredientItems.value,
+      ingredientAmounts: ingredientAmounts,
+      category: this.categories.find(cat => cat.catId === Number(this.postForm.value.category)) || 
+               { catId: this.postForm.value.category, name: '' },
       author: { username: '' },
-      dateCreate: ''
+      dateCreate: '',
+      preparationTime: this.postForm.value.preparationTime,
+      cookingTime: this.postForm.value.cookingTime,
+      temperature: this.postForm.value.temperature,
+      photo: this.postForm.value.photo
     };
-
-    console.log('Submitting post:', post, 'Photo:', this.photo?.name);
-    const action = this.isEdit
-      ? this.postService.updatePost(post.idPost!, post, this.photo)
-      : this.postService.createPost(post, this.photo);
-
-    action.subscribe({
-      next: () => {
-        console.log('Post saved successfully');
-        this.router.navigate(['/posts']);
-      },
-      error: (err) => {
-        console.error('Failed to save post:', err);
-        this.error = err.error?.message || 'Failed to save post';
-      }
-    });
   }
 
   get f(): { [key: string]: AbstractControl } {

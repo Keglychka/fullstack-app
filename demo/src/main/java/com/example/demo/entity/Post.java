@@ -2,6 +2,7 @@ package com.example.demo.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Entity
 @Table(name = "posts")
@@ -24,6 +25,15 @@ public class Post {
     private LocalDateTime dateCreate;
 
     private LocalDateTime dateUpdate;
+    private Integer preparationTime;
+    private Integer cookingTime;
+    private String temperatureMode;
+    @ElementCollection
+    @CollectionTable(name = "post_ingredient_amounts",
+            joinColumns = @JoinColumn(name = "post_id"))
+    @MapKeyColumn(name = "ingredient_name")
+    @Column(name = "amount")
+    private Map<String, Double> ingredientAmounts;
 
     @ManyToOne
     @JoinColumn(name = "author_id", nullable = false)
@@ -112,5 +122,36 @@ public class Post {
 
     public void setCategory(Category category) {
         this.category = category;
+    }
+    public Integer getPreparationTime() {
+        return preparationTime;
+    }
+
+    public void setPreparationTime(Integer preparationTime) {
+        this.preparationTime = preparationTime;
+    }
+
+    public Integer getCookingTime() {
+        return cookingTime;
+    }
+
+    public void setCookingTime(Integer cookingTime) {
+        this.cookingTime = cookingTime;
+    }
+
+    public String getTemperatureMode() {
+        return temperatureMode;
+    }
+
+    public void setTemperatureMode(String temperatureMode) {
+        this.temperatureMode = temperatureMode;
+    }
+
+    public Map<String, Double> getIngredientAmounts() {
+        return ingredientAmounts;
+    }
+
+    public void setIngredientAmounts(Map<String, Double> ingredientAmounts) {
+        this.ingredientAmounts = ingredientAmounts;
     }
 }

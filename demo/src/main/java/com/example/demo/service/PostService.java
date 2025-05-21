@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -51,7 +52,6 @@ public class PostService {
     }
 
     public Post createPost(Post post, MultipartFile photo, String username) throws IOException {
-        System.out.println("PostService: Creating post for user: " + username);
         User author = userRepository.findByUsername(username);
         if (author == null) {
             throw new RuntimeException("User not found");
@@ -67,17 +67,13 @@ public class PostService {
                     : ".jpg";
             String fileName = UUID.randomUUID().toString() + fileExtension;
             File uploadDir = new File(uploadDirPath);
-            System.out.println("Upload directory: " + uploadDir.getAbsolutePath());
-            System.out.println("Upload dir exists: " + uploadDir.exists());
-            if (!uploadDir.exists()) {
-                System.out.println("Creating upload dir: " + uploadDir.mkdirs());
-            }
             File destFile = new File(uploadDirPath + fileName);
-            System.out.println("Saving file to: " + destFile.getAbsolutePath());
-            System.out.println("File writable: " + destFile.getParentFile().canWrite());
             photo.transferTo(destFile);
             post.setPhoto("/Uploads/" + fileName);
-            System.out.println("Post photo path: " + post.getPhoto());
+        }
+
+        if (post.getIngredientAmounts() == null) {
+            post.setIngredientAmounts(Map.of());
         }
 
         return postRepository.save(post);
@@ -97,6 +93,11 @@ public class PostService {
         post.setIngredients(postDetails.getIngredients());
         post.setCategory(postDetails.getCategory());
         post.setDateUpdate(LocalDateTime.now());
+        post.setPreparationTime(postDetails.getPreparationTime());
+        post.setCookingTime(postDetails.getCookingTime());
+        post.setTemperatureMode(postDetails.getTemperatureMode());
+        post.setIngredientAmounts(postDetails.getIngredientAmounts());
+
 
         if (photo != null && !photo.isEmpty()) {
             if (post.getPhoto() != null) {
@@ -111,17 +112,9 @@ public class PostService {
                     : ".jpg";
             String fileName = UUID.randomUUID() + fileExtension;
             File uploadDir = new File(uploadDirPath);
-            System.out.println("Upload directory: " + uploadDir.getAbsolutePath());
-            System.out.println("Upload dir exists: " + uploadDir.exists());
-            if (!uploadDir.exists()) {
-                System.out.println("Creating upload dir: " + uploadDir.mkdirs());
-            }
             File destFile = new File(uploadDirPath + fileName);
-            System.out.println("Saving file to: " + destFile.getAbsolutePath());
-            System.out.println("File writable: " + destFile.getParentFile().canWrite());
             photo.transferTo(destFile);
             post.setPhoto("/Uploads/" + fileName);
-            System.out.println("Post photo path: " + post.getPhoto());
         }
 
 

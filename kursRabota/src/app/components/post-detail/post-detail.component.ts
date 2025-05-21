@@ -128,4 +128,26 @@ export class PostDetailComponent implements OnInit {
       });
     }
   }
+
+  getIngredientKeys(): string[] {
+    return this.post?.ingredientAmounts ? Object.keys(this.post.ingredientAmounts) : [];
+  }
+
+  getIngredientUnit(ingredientName: string): string {
+    if (!this.post?.ingredients) return '';
+    
+    const ingredientLine = this.post.ingredients
+      .split('\n')
+      .find(line => line.trim().startsWith(ingredientName));
+
+    if (!ingredientLine) return '';
+
+    const parts = ingredientLine.split(':');
+    if (parts.length < 2) return '';
+
+    const amountWithUnit = parts[1].trim();
+    const unitMatch = amountWithUnit.match(/\D+$/);
+    
+    return unitMatch ? unitMatch[0].trim() : '';
+  }
 }
